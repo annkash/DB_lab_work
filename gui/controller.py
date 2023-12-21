@@ -16,10 +16,10 @@ class Controller:
     def get_list_db(self):
         return self._model.get_list_db()
 
-    def delete_database_window_event(self, database):
+    def delete_database(self, database, delete_database_window):
         self._model.delete_database(database)
-        self._view.delete_database_window.destroy()
-        self._view.delete_database_window.update()
+        delete_database_window.destroy()
+        delete_database_window.update()
 
     def get_list_tables(self, database):
         return self._model.get_list_tables(database)
@@ -39,3 +39,11 @@ class Controller:
             self._model.add_data_to_table(database, table, data_list)
             info_label.configure(text='Данные добавлены', text_color='green')
 
+    def delete_row(self, database, table, row, info_label):
+        self._model.delete_row(database, table, row)
+        info_label.configure(text='строка удалена', text_color='green')
+
+    def delete_table(self, database, table, delete_table_window):
+        self._model.delete_table(database, table)
+        delete_table_window.destroy()
+        delete_table_window.update()

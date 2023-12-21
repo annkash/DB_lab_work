@@ -40,3 +40,9 @@ class Model:
 
     def add_data_to_table(self, database, table, data_entry_list):
         pass
+
+    def delete_row(self, database, table, row):
+        pass
+
+    def delete_table(self, database, table):
+        pass
