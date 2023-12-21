@@ -80,12 +80,11 @@ class View(customtkinter.CTk):
         info_for_user.pack(side='top', pady=5, padx=20, expand=False)
         db_entry = customtkinter.CTkEntry(create_database_window)
         db_entry.pack(pady=5, padx=5)
-        database = db_entry.get()
 
         ctrl = controller.Controller(self, self._model)
 
         confirm = customtkinter.CTkButton(create_database_window, text='добавить',
-                                          command=lambda: ctrl.create_database(database, create_database_window))
+                                          command=lambda: ctrl.create_database(db_entry.get(), create_database_window))
         confirm.pack(pady=5, padx=5)
 
     def delete_database(self):
@@ -349,9 +348,8 @@ class View(customtkinter.CTk):
         info_for_user.pack(side='top', pady=5, padx=20, expand=False)
         tb_list_option = customtkinter.CTkOptionMenu(clear_table_window, values=list_tb)
         tb_list_option.pack(pady=5, padx=5)
-        table = tb_list_option.get()
 
-        confirm = customtkinter.CTkButton(clear_table_window, text='очистить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.clear_table(database, table, clear_table_window))
+        confirm = customtkinter.CTkButton(clear_table_window, text='очистить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.clear_table(database, tb_list_option.get(), clear_table_window))
         confirm.pack(pady=5, padx=5)
 
     def change_data(self, database):
