@@ -44,7 +44,7 @@ class View(customtkinter.CTk):
         operations_label = customtkinter.CTkLabel(master=menu_options_frame, text='Операции с базами данных', font=self.my_font)
         operations_label.pack(pady=5, padx=20)
 
-        create_database_button = customtkinter.CTkButton(menu_options_frame, text="Создать базу данных")
+        create_database_button = customtkinter.CTkButton(menu_options_frame, text="Создать базу данных", command=self.create_database)
         create_database_button.pack(pady=5, padx=5)
 
         delete_database_button = customtkinter.CTkButton(menu_options_frame, text="Удалить базу данных...", command=self.delete_database)
@@ -63,6 +63,30 @@ class View(customtkinter.CTk):
 
     def Run(self):
         self.mainloop()
+
+    def create_database(self):
+        create_database_window = customtkinter.CTkToplevel(self)
+        create_database_window.title('Создание базы данных')
+        create_database_window.wm_attributes("-topmost", True)
+        create_database_window.after(250, lambda: create_database_window.iconbitmap(self.iconpath))
+        width = 400
+        height = 150
+        x, y = self.coord_to_center(width, height)
+        create_database_window.geometry(f'{width}x{height}+{int(x)}+{int(y)}')
+
+        info_for_user = customtkinter.CTkLabel(master=create_database_window,
+                                               text='Введите название для базы данных:',
+                                               font=customtkinter.CTkFont(family="Helvetica", size=14))
+        info_for_user.pack(side='top', pady=5, padx=20, expand=False)
+        db_entry = customtkinter.CTkEntry(create_database_window)
+        db_entry.pack(pady=5, padx=5)
+        database = db_entry.get()
+
+        ctrl = controller.Controller(self, self._model)
+
+        confirm = customtkinter.CTkButton(create_database_window, text='добавить',
+                                          command=lambda: ctrl.create_database(database, create_database_window))
+        confirm.pack(pady=5, padx=5)
 
     def delete_database(self):
         ctrl = controller.Controller(self, self._model)
@@ -148,13 +172,18 @@ class View(customtkinter.CTk):
             delete_data_button = customtkinter.CTkButton(menu_frame, text='удалить запись', command=lambda: self.delete_row(database))
             delete_data_button.pack(pady=5, padx=5)
 
-            delete_table_button = customtkinter.CTkButton(menu_frame, text='удалить таблицу', command=lambda: self.delete_table(database))
-            delete_table_button.pack(padx=5)
+            clear_table_button = customtkinter.CTkButton(menu_frame, text='очистить таблицу', command=lambda: self.clear_table(database))
+            clear_table_button.pack(padx=5)
 
             create_table_button = customtkinter.CTkButton(menu_frame, text='создать таблицу')
             create_table_button.pack(pady=10, padx=10)
 
+            clear_tables_button = customtkinter.CTkButton(menu_frame, text='очистить все таблицы', fg_color='#FF3636', hover_color='#BA0000',
+                                                          command=lambda: ctrl._model.clear_all_tables(database))
+            clear_tables_button.pack(padx=5)
+
     def view_tables(self, database):
+        self.interaction_database_window.withdraw()
         def update_table(table):
             df = pd.DataFrame(self._model.get_table(database, table))
             pt.model.df = df
@@ -189,8 +218,8 @@ class View(customtkinter.CTk):
         add_data_window.title(f'{database}')
         add_data_window.wm_attributes("-topmost", True)
         add_data_window.after(250, lambda: add_data_window.iconbitmap(self.iconpath))
-        app_width = 400
-        app_height = 400
+        app_width = 800
+        app_height = 600
         x, y = self.coord_to_center(app_width, app_height)
         add_data_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
 
@@ -297,57 +326,33 @@ class View(customtkinter.CTk):
                 pt.setSelectedRow(rowclicked)
                 colclicked = pt.get_col_clicked(event)
                 pt.setSelectedCol(colclicked)
-                pt.redraw()
                 info_label.configure(text='')
-                delete_button.configure(text=f'удалить {rowclicked + 1} строку', command=lambda: ctrl.delete_row(database, tables_option.get(), (rowclicked+1), info_label))
+                delete_button.configure(text=f'удалить {rowclicked + 1} строку', command=lambda: ctrl.delete_row(database, tables_option.get(), pt.model.getValueAt(rowclicked, 0), info_label))
+                pt.redraw()
 
             pt.bind("<ButtonRelease-1>", handle_click_delete)
 
-    def delete_table(self, database):
+    def clear_table(self, database):
         ctrl = controller.Controller(self, self._model)
         list_tb = ctrl.get_list_tables(database)
 
-        delete_table_window = customtkinter.CTkToplevel(self.interaction_database_window)
-        delete_table_window.title(f'{database}')
-        delete_table_window.wm_attributes("-topmost", True)
-        delete_table_window.after(250, lambda: delete_table_window.iconbitmap(self.iconpath))
-        app_width = 200
-        app_height = 100
+        clear_table_window = customtkinter.CTkToplevel(self.interaction_database_window)
+        clear_table_window.title(f'{database}')
+        clear_table_window.wm_attributes("-topmost", True)
+        clear_table_window.after(250, lambda: clear_table_window.iconbitmap(self.iconpath))
+        app_width = 400
+        app_height = 150
         x, y = self.coord_to_center(app_width, app_height)
-        delete_table_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+        clear_table_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
 
-        if (len(list_tb) == 0):
-            error_message(delete_table_window, 'Доступных для удаления таблиц данных нет.')
-        else:
-            info_for_user = customtkinter.CTkLabel(master=delete_table_window, text='Выберите таблицу, которую хотите удалить:', font=customtkinter.CTkFont(family="Helvetica", size=14))
-            info_for_user.pack(side='top', pady=5, padx=20, expand=False)
-            tb_list_option = customtkinter.CTkOptionMenu(delete_table_window, values=list_tb)
-            tb_list_option.pack(pady=5, padx=5)
-            table = tb_list_option.get()
+        info_for_user = customtkinter.CTkLabel(master=clear_table_window, text='Выберите таблицу, которую хотите удалить:', font=customtkinter.CTkFont(family="Helvetica", size=14))
+        info_for_user.pack(side='top', pady=5, padx=20, expand=False)
+        tb_list_option = customtkinter.CTkOptionMenu(clear_table_window, values=list_tb)
+        tb_list_option.pack(pady=5, padx=5)
+        table = tb_list_option.get()
 
-            confirm = customtkinter.CTkButton(delete_table_window, text='удалить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.delete_table(database, table, delete_table_window))
-            confirm.pack(pady=5, padx=5)
+        confirm = customtkinter.CTkButton(clear_table_window, text='удалить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.clear_table(database, table, clear_table_window))
+        confirm.pack(pady=5, padx=5)
 
     def create_table(self, database):
         pass
-
-
-
-
-
-
-
-'''
-        data_management_label = customtkinter.CTkLabel(menu_options_frame, text="Управление данными", font=my_font)
-        data_management_label.pack(pady=5, padx=20)
-
-        display_table_content_button = customtkinter.CTkButton(menu_options_frame, text="Показать содержимое таблицы")
-        display_table_content_button.pack(padx=5)
-
-        add_new_data_button = customtkinter.CTkButton(menu_options_frame, text="Добавить новые данные")
-        add_new_data_button.pack(pady=10, padx=5)
-
-        #new_window = customtkinter.CTkToplevel(self)
-        #new_window.title("новое окно")
-        #new_window.geometry("100x100")
-'''

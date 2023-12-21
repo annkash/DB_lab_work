@@ -44,5 +44,11 @@ class Model:
     def delete_row(self, database, table, row):
         pass
 
-    def delete_table(self, database, table):
+    def clear_table(self, database, table):
+        pass
+
+    def create_database(self, database):
+        pass
+
+    def clear_all_tables(self, database):
         pass

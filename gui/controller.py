@@ -27,7 +27,6 @@ class Controller:
     def get_columns(self, database, table):
         return self._model.get_columns(database, table)
 
-
     def add_data_to_table(self,database, table, data_entries, info_label):
         data_list = []
         for i in range(0, len(data_entries)):
@@ -43,7 +42,12 @@ class Controller:
         self._model.delete_row(database, table, row)
         info_label.configure(text='строка удалена', text_color='green')
 
-    def delete_table(self, database, table, delete_table_window):
-        self._model.delete_table(database, table)
-        delete_table_window.destroy()
-        delete_table_window.update()
+    def clear_table(self, database, table, clear_table_window):
+        self._model.clear_table(database, table)
+        clear_table_window.destroy()
+        clear_table_window.update()
+
+    def create_database(self, database, create_database_window):
+        self._model.create_database(database)
+        create_database_window.destroy()
+        create_database_window.update()
