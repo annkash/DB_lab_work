@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 import customtkinter
 from PIL import Image
 from gui import controller
@@ -465,3 +466,6 @@ class View(customtkinter.CTk):
         pt = Table(table_frame)
         pt.show()
 
+        add_new_data_button = customtkinter.CTkButton(menu_options_frame, text="Добавить новые данные",
+                                                      command=self.add_data_window)
+        add_new_data_button.pack(pady=10, padx=5)
