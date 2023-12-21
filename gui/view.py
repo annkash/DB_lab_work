@@ -166,28 +166,27 @@ class View(customtkinter.CTk):
             view_tables_button = customtkinter.CTkButton(menu_frame, text='посмотреть таблицы', command=lambda: self.view_tables(database))
             view_tables_button.pack(pady=10, padx=5)
 
+            view_students_to_city = customtkinter.CTkButton(menu_frame, text='поиск и удаление студентов по городу', command=lambda: self.view_students_to_city(database))
+            view_students_to_city.pack(padx=5)
+
             add_data_button = customtkinter.CTkButton(menu_frame, text='добавить данные', command=lambda: self.add_data(database))
-            add_data_button.pack(padx=5)
+            add_data_button.pack(padx=5, pady=10)
 
             change_data_button = customtkinter.CTkButton(menu_frame, text='изменить данные',
                                                       command=lambda: self.change_data(database))
             change_data_button.pack(padx=5)
 
             delete_data_button = customtkinter.CTkButton(menu_frame, text='удалить запись', command=lambda: self.delete_row(database))
-            delete_data_button.pack(pady=5, padx=5)
+            delete_data_button.pack(pady=10, padx=5)
 
             clear_table_button = customtkinter.CTkButton(menu_frame, text='очистить таблицу', command=lambda: self.clear_table(database))
             clear_table_button.pack(padx=5)
 
-            create_table_button = customtkinter.CTkButton(menu_frame, text='создать таблицу')
-            create_table_button.pack(pady=10, padx=10)
-
             clear_tables_button = customtkinter.CTkButton(menu_frame, text='очистить все таблицы', fg_color='#FF3636', hover_color='#BA0000',
                                                           command=lambda: ctrl._model.clear_all_tables(database))
-            clear_tables_button.pack(padx=5)
+            clear_tables_button.pack(padx=10, pady=10)
 
     def view_tables(self, database):
-        self.interaction_database_window.withdraw()
         def update_table(table):
             df = pd.DataFrame(self._model.get_table(database, table))
             pt.model.df = df
@@ -203,19 +202,16 @@ class View(customtkinter.CTk):
 
         list_tables = self._model.get_list_tables(database)
 
-        if (len(list_tables) == 0):
-            error_message(view_tables_window, 'Доступных для просмотра таблиц нет.')
-        else:
-            tables_button_default = customtkinter.StringVar(value=list_tables[0])
-            tables_button = customtkinter.CTkSegmentedButton(view_tables_window, values=list_tables,
-                                                             variable=tables_button_default, command=lambda table: update_table(table))
-            tables_button.pack(side='top', anchor='center')
-            table_frame = customtkinter.CTkFrame(view_tables_window)
-            table_frame.pack(side='bottom', expand=True, fill='both')
+        tables_button_default = customtkinter.StringVar(value=list_tables[0])
+        tables_button = customtkinter.CTkSegmentedButton(view_tables_window, values=list_tables,
+                                                         variable=tables_button_default, command=lambda table: update_table(table))
+        tables_button.pack(side='top', anchor='center')
+        table_frame = customtkinter.CTkFrame(view_tables_window)
+        table_frame.pack(side='bottom', expand=True, fill='both')
 
-            df = pd.DataFrame(self._model.get_table(database, tables_button.get()))
-            pt = Table(table_frame, dataframe=df)
-            pt.show()
+        df = pd.DataFrame(self._model.get_table(database, tables_button.get()))
+        pt = Table(table_frame, dataframe=df)
+        pt.show()
 
     def add_data(self, database):
         add_data_window = customtkinter.CTkToplevel(self.interaction_database_window)
@@ -424,5 +420,50 @@ class View(customtkinter.CTk):
 
         pt.bind("<ButtonRelease-1>", handle_click_change)
 
-    
+    def view_students_to_city(self, database):
+        def view_students(city, info_label):
+            df = pd.DataFrame(ctrl.find_students_to_city(database, city, info_label))
+            pt.model.df = df
+            pt.redraw()
+        view_students_to_city_window = customtkinter.CTkToplevel(self.interaction_database_window)
+        view_students_to_city_window.title(f'{database}')
+        view_students_to_city_window.wm_attributes("-topmost", True)
+        view_students_to_city_window.after(250, lambda: view_students_to_city_window.iconbitmap(self.iconpath))
+        app_width = 400
+        app_height = 400
+        x, y = self.coord_to_center(app_width, app_height)
+        view_students_to_city_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+
+        left_frame = customtkinter.CTkFrame(view_students_to_city_window)
+        left_frame.pack(side='left', fill='y')
+
+        find_label = customtkinter.CTkLabel(left_frame, text='Введите город, по которому\n хотите найти студентов:')
+        find_label.pack(pady=10, padx=50)
+
+        city_entry = customtkinter.CTkEntry(left_frame)
+        city_entry.pack(pady=10)
+
+        find_button = customtkinter.CTkButton(left_frame,text='показать студентов', command=lambda: view_students(city_entry.get(), info_label))
+        find_button.pack(pady=10)
+
+        ctrl = controller.Controller(self, self._model)
+
+        delete_label = customtkinter.CTkLabel(left_frame, text='Введите город, по которому\n хотите удалить студентов:')
+        delete_label.pack(pady=10, padx=50)
+
+        city_entry2 = customtkinter.CTkEntry(left_frame)
+        city_entry2.pack(pady=10)
+
+        delete_button = customtkinter.CTkButton(left_frame, text='удалить студентов', fg_color='#FF3636', hover_color='#BA0000',
+                                              command=lambda: ctrl.delete_students_to_city(database, city_entry2.get(), info_label))
+        delete_button.pack(pady=10)
+
+        info_label = customtkinter.CTkLabel(left_frame, text='')
+        info_label.pack(pady=10, padx=10)
+
+        table_frame = customtkinter.CTkFrame(view_students_to_city_window)
+        table_frame.pack(side='right', expand=True, fill='both')
+
+        pt = Table(table_frame)
+        pt.show()
 

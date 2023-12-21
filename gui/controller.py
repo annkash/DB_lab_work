@@ -59,3 +59,16 @@ class Controller:
             info_label.configure(text='изменения сохранены', text_color='green')
         for widget in form_frame.winfo_children():
             widget.destroy()
+
+    def delete_students_to_city(self, database, city, info_label):
+        if (city == ''):
+            info_label.configure(text='введите город', text_color='red')
+        else:
+            self._model.delete_students_to_city(database, city)
+            info_label.configure(text='данные удалены', text_color='green')
+
+    def find_students_to_city(self, database, city, info_label):
+        if (city == ''):
+            info_label.configure(text='введите город', text_color='red')
+        else:
+            return self._model.find_students_to_city(database, city)

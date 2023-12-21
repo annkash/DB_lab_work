@@ -55,3 +55,21 @@ class Model:
 
     def change_row(self, database, table, id, num_col, value):
         pass
+
+    def find_students_to_city(self, database, city):
+        # пример для показа таблицы в гуи
+        connect = psycopg2.connect(port='5432', host='localhost', user='superuser', password='1',
+                                   dbname='driving_school_full')
+        cursor = connect.cursor()
+        if city == 'cars':
+            cursor.execute("SELECT * FROM cars")
+        elif city == 'instructors':
+            cursor.execute("SELECT * FROM instructors")
+        result = cursor.fetchall()
+        df = pd.DataFrame(result)
+        cursor.close()
+        connect.close()
+        return df
+
+    def delete_students_to_city(self, database, city):
+        pass
