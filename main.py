@@ -1,4 +1,7 @@
+from gui import controller
 from gui import view
+from gui import model
 
-app = view.View()
-app.mainloop()
+model = model.Model()
+app = view.View(model)
+app.Run()
