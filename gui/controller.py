@@ -51,3 +51,11 @@ class Controller:
         self._model.create_database(database)
         create_database_window.destroy()
         create_database_window.update()
+
+    def change_row(self, database, table, id, num_col, value, pt, info_label, form_frame, rowclicked):
+        self._model.change_row(database, table, id, num_col, value)
+        if (num_col!=0):
+            pt.model.setValueAt(value, rowclicked, num_col)
+            info_label.configure(text='изменения сохранены', text_color='green')
+        for widget in form_frame.winfo_children():
+            widget.destroy()

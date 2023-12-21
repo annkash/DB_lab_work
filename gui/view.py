@@ -169,6 +169,10 @@ class View(customtkinter.CTk):
             add_data_button = customtkinter.CTkButton(menu_frame, text='добавить данные', command=lambda: self.add_data(database))
             add_data_button.pack(padx=5)
 
+            change_data_button = customtkinter.CTkButton(menu_frame, text='изменить данные',
+                                                      command=lambda: self.change_data(database))
+            change_data_button.pack(padx=5)
+
             delete_data_button = customtkinter.CTkButton(menu_frame, text='удалить запись', command=lambda: self.delete_row(database))
             delete_data_button.pack(pady=5, padx=5)
 
@@ -345,14 +349,80 @@ class View(customtkinter.CTk):
         x, y = self.coord_to_center(app_width, app_height)
         clear_table_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
 
-        info_for_user = customtkinter.CTkLabel(master=clear_table_window, text='Выберите таблицу, которую хотите удалить:', font=customtkinter.CTkFont(family="Helvetica", size=14))
+        info_for_user = customtkinter.CTkLabel(master=clear_table_window, text='Выберите таблицу, которую хотите очистить:', font=customtkinter.CTkFont(family="Helvetica", size=14))
         info_for_user.pack(side='top', pady=5, padx=20, expand=False)
         tb_list_option = customtkinter.CTkOptionMenu(clear_table_window, values=list_tb)
         tb_list_option.pack(pady=5, padx=5)
         table = tb_list_option.get()
 
-        confirm = customtkinter.CTkButton(clear_table_window, text='удалить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.clear_table(database, table, clear_table_window))
+        confirm = customtkinter.CTkButton(clear_table_window, text='очистить', fg_color='#FF3636', hover_color='#BA0000', command=lambda: ctrl.clear_table(database, table, clear_table_window))
         confirm.pack(pady=5, padx=5)
 
-    def create_table(self, database):
-        pass
+    def change_data(self, database):
+        change_data_window = customtkinter.CTkToplevel(self.interaction_database_window)
+        change_data_window.title(f'{database}')
+        change_data_window.wm_attributes("-topmost", True)
+        change_data_window.after(250, lambda: change_data_window.iconbitmap(self.iconpath))
+        app_width = 800
+        app_height = 500
+        x, y = self.coord_to_center(app_width, app_height)
+        change_data_window.geometry(f'{app_width}x{app_height}+{int(x)}+{int(y)}')
+
+        ctrl = controller.Controller(self, self._model)
+        list_tables = ctrl.get_list_tables(database)
+
+        table_choose_frame = customtkinter.CTkFrame(change_data_window)
+        table_choose_frame.pack(side='left', fill='y')
+
+        table_label = customtkinter.CTkLabel(table_choose_frame, text="Выберите таблицу:")
+        table_label.pack()
+
+        def update_table(table):
+            df = pd.DataFrame(self._model.get_table(database, table))
+            pt.model.df = df
+            pt.redraw()
+
+        tables_option_default = customtkinter.StringVar(value=list_tables[0])
+        tables_option = customtkinter.CTkOptionMenu(table_choose_frame, values=list_tables,
+                                                    variable=tables_option_default,
+                                                    command=lambda table: update_table(table))
+        tables_option.pack(side='top', anchor='center', pady=15)
+
+        table_frame = customtkinter.CTkFrame(change_data_window)
+        table_frame.pack(side='right', fill='both', expand=True)
+
+        df = pd.DataFrame(self._model.get_table(database, tables_option.get()))
+        pt = Table(table_frame, dataframe=df)
+        pt.show()
+
+        form_frame = customtkinter.CTkFrame(table_choose_frame)
+        form_frame.pack(fill='both')
+
+        change_label = customtkinter.CTkLabel(table_choose_frame, text="Выберите ячейку, которую хотите изменить")
+        change_label.pack(pady=10, padx=10)
+
+        info_label = customtkinter.CTkLabel(table_choose_frame, text='')
+        info_label.pack()
+
+        def handle_click_change(event):
+            for widget in form_frame.winfo_children():
+                widget.destroy()
+            input_label = customtkinter.CTkLabel(form_frame, text='Введите новое значение для ячейки:')
+            input_label.pack()
+            data_entry = customtkinter.CTkEntry(form_frame)
+            data_entry.pack()
+            save_button = customtkinter.CTkButton(form_frame, text='сохранить новое значение')
+            save_button.pack(pady=15)
+            rowclicked = pt.get_row_clicked(event)
+            pt.setSelectedRow(rowclicked)
+            colclicked = pt.get_col_clicked(event)
+            pt.setSelectedCol(colclicked)
+            info_label.configure(text='')
+            save_button.configure(command=lambda: ctrl.change_row(database, tables_option.get(),
+                                                                    pt.model.getValueAt(rowclicked, 0), colclicked,  data_entry.get(), pt, info_label, form_frame, rowclicked))
+            pt.redraw()
+
+        pt.bind("<ButtonRelease-1>", handle_click_change)
+
+    
+

@@ -52,3 +52,6 @@ class Model:
 
     def clear_all_tables(self, database):
         pass
+
+    def change_row(self, database, table, id, num_col, value):
+        pass
